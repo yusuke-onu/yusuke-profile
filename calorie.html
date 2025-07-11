@@ -4,85 +4,6 @@
   <meta charset="UTF-8">
   <title>カロリー管理アプリ</title>
   <link rel="stylesheet" href="calorie.css">
-
-<script>
-  const form = document.getElementById('calorie-form');
-  const itemInput = document.getElementById('item');
-  const calorieInput = document.getElementById('calorie');
-  const recordList = document.getElementById('record-list');
-  const totalSpan = document.getElementById('total');
-
-  let totalCalories = 0;
-  let records = [];
-
-  // 🔁 ページ読み込み時にローカルストレージから読み込む
-  window.addEventListener('DOMContentLoaded', () => {
-    const saved = localStorage.getItem('calorieRecords');
-    if (saved) {
-      records = JSON.parse(saved);
-      records.forEach(({ item, calorie }) => {
-        addRecord(item, calorie);
-      });
-    }
-  });
-
-  // ✅ 追加ボタンが押されたときの処理
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const item = itemInput.value.trim();
-    const calorie = parseInt(calorieInput.value);
-
-    if (!item || isNaN(calorie)) return;
-
-    addRecord(item, calorie);
-
-    itemInput.value = '';
-    calorieInput.value = '';
-  });
-
-  // ✅ 表示＋削除ボタン＋保存処理
-  function addRecord(item, calorie) {
-    const li = document.createElement('li');
-    li.textContent = `${item}：${calorie} kcal`;
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = '×';
-    deleteBtn.style.marginLeft = '10px';
-    deleteBtn.style.color = 'red';
-    deleteBtn.style.border = 'none';
-    deleteBtn.style.background = 'transparent';
-    deleteBtn.style.cursor = 'pointer';
-
-    deleteBtn.addEventListener('click', () => {
-      recordList.removeChild(li);
-      totalCalories -= calorie;
-      totalSpan.textContent = totalCalories;
-
-      // レコードから削除して保存
-      records = records.filter(r => !(r.item === item && r.calorie === calorie));
-      saveData();
-    });
-
-    li.appendChild(deleteBtn);
-    recordList.appendChild(li);
-
-    totalCalories += calorie;
-    totalSpan.textContent = totalCalories;
-
-    // 保存用配列に追加して保存
-    records.push({ item, calorie });
-    saveData();
-  }
-
-  // 💾 保存処理
-  function saveData() {
-    localStorage.setItem('calorieRecords', JSON.stringify(records));
-    console.log('データ保存完了:', records); // ← 開発用ログ（あとで消してOK）
-  }
-</script>
-
-  
 </head>
 <body>
   <h1>カロリー管理アプリ（ゆうすけ）</h1>
@@ -98,5 +19,78 @@
   <ul id="record-list">
     <!-- 記録がここに追加されます -->
   </ul>
+
+  <!-- ✅ JavaScriptはbodyの最後に置く -->
+  <script>
+    const form = document.getElementById('calorie-form');
+    const itemInput = document.getElementById('item');
+    const calorieInput = document.getElementById('calorie');
+    const recordList = document.getElementById('record-list');
+    const totalSpan = document.getElementById('total');
+
+    let totalCalories = 0;
+    let records = [];
+
+    // ページ読み込み時にローカルストレージから読み込む
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem('calorieRecords');
+      if (saved) {
+        records = JSON.parse(saved);
+        records.forEach(({ item, calorie }) => {
+          addRecord(item, calorie);
+        });
+      }
+    });
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const item = itemInput.value.trim();
+      const calorie = parseInt(calorieInput.value);
+
+      if (!item || isNaN(calorie)) return;
+
+      addRecord(item, calorie);
+
+      itemInput.value = '';
+      calorieInput.value = '';
+    });
+
+    function addRecord(item, calorie) {
+      const li = document.createElement('li');
+      li.textContent = `${item}：${calorie} kcal`;
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = '×';
+      deleteBtn.style.marginLeft = '10px';
+      deleteBtn.style.color = 'red';
+      deleteBtn.style.border = 'none';
+      deleteBtn.style.background = 'transparent';
+      deleteBtn.style.cursor = 'pointer';
+
+      deleteBtn.addEventListener('click', () => {
+        recordList.removeChild(li);
+        totalCalories -= calorie;
+        totalSpan.textContent = totalCalories;
+
+        records = records.filter(r => !(r.item === item && r.calorie === calorie));
+        saveData();
+      });
+
+      li.appendChild(deleteBtn);
+      recordList.appendChild(li);
+
+      totalCalories += calorie;
+      totalSpan.textContent = totalCalories;
+
+      records.push({ item, calorie });
+      saveData();
+    }
+
+    function saveData() {
+      localStorage.setItem('calorieRecords', JSON.stringify(records));
+      console.log('データ保存完了:', records);
+    }
+  </script>
 </body>
 </html>
