@@ -15,7 +15,7 @@
   let totalCalories = 0;
   let records = [];
 
-  // 🔁 保存されていたデータを読み込む
+  // 🔁 ページ読み込み時にローカルストレージから読み込む
   window.addEventListener('DOMContentLoaded', () => {
     const saved = localStorage.getItem('calorieRecords');
     if (saved) {
@@ -26,7 +26,7 @@
     }
   });
 
-  // ✅ フォーム送信時
+  // ✅ 追加ボタンが押されたときの処理
   form.addEventListener('submit', function(e) {
     e.preventDefault();
 
@@ -35,16 +35,13 @@
 
     if (!item || isNaN(calorie)) return;
 
-    // 表示・保存
     addRecord(item, calorie);
-    records.push({ item, calorie });
-    saveData();
 
     itemInput.value = '';
     calorieInput.value = '';
   });
 
-  // ✅ レコード追加＆削除ボタン付き表示
+  // ✅ 表示＋削除ボタン＋保存処理
   function addRecord(item, calorie) {
     const li = document.createElement('li');
     li.textContent = `${item}：${calorie} kcal`;
@@ -62,7 +59,7 @@
       totalCalories -= calorie;
       totalSpan.textContent = totalCalories;
 
-      // 配列から削除して保存
+      // レコードから削除して保存
       records = records.filter(r => !(r.item === item && r.calorie === calorie));
       saveData();
     });
@@ -72,13 +69,19 @@
 
     totalCalories += calorie;
     totalSpan.textContent = totalCalories;
+
+    // 保存用配列に追加して保存
+    records.push({ item, calorie });
+    saveData();
   }
 
-  // 💾 ローカルストレージに保存
+  // 💾 保存処理
   function saveData() {
     localStorage.setItem('calorieRecords', JSON.stringify(records));
+    console.log('データ保存完了:', records); // ← 開発用ログ（あとで消してOK）
   }
 </script>
+
   
 </head>
 <body>
