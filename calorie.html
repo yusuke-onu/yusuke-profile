@@ -13,7 +13,20 @@
   const totalSpan = document.getElementById('total');
 
   let totalCalories = 0;
+  let records = [];
 
+  // 🔁 保存されていたデータを読み込む
+  window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('calorieRecords');
+    if (saved) {
+      records = JSON.parse(saved);
+      records.forEach(({ item, calorie }) => {
+        addRecord(item, calorie);
+      });
+    }
+  });
+
+  // ✅ フォーム送信時
   form.addEventListener('submit', function(e) {
     e.preventDefault();
 
@@ -22,11 +35,20 @@
 
     if (!item || isNaN(calorie)) return;
 
-    // リスト要素を作成
+    // 表示・保存
+    addRecord(item, calorie);
+    records.push({ item, calorie });
+    saveData();
+
+    itemInput.value = '';
+    calorieInput.value = '';
+  });
+
+  // ✅ レコード追加＆削除ボタン付き表示
+  function addRecord(item, calorie) {
     const li = document.createElement('li');
     li.textContent = `${item}：${calorie} kcal`;
 
-    // 削除ボタンを追加
     const deleteBtn = document.createElement('button');
     deleteBtn.textContent = '×';
     deleteBtn.style.marginLeft = '10px';
@@ -35,11 +57,14 @@
     deleteBtn.style.background = 'transparent';
     deleteBtn.style.cursor = 'pointer';
 
-    // 削除ボタンの動作
     deleteBtn.addEventListener('click', () => {
       recordList.removeChild(li);
       totalCalories -= calorie;
       totalSpan.textContent = totalCalories;
+
+      // 配列から削除して保存
+      records = records.filter(r => !(r.item === item && r.calorie === calorie));
+      saveData();
     });
 
     li.appendChild(deleteBtn);
@@ -47,12 +72,13 @@
 
     totalCalories += calorie;
     totalSpan.textContent = totalCalories;
+  }
 
-    itemInput.value = '';
-    calorieInput.value = '';
-  });
+  // 💾 ローカルストレージに保存
+  function saveData() {
+    localStorage.setItem('calorieRecords', JSON.stringify(records));
+  }
 </script>
-
   
 </head>
 <body>
