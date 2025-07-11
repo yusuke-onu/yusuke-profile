@@ -17,21 +17,37 @@
   form.addEventListener('submit', function(e) {
     e.preventDefault();
 
-    const item = itemInput.value;
+    const item = itemInput.value.trim();
     const calorie = parseInt(calorieInput.value);
 
     if (!item || isNaN(calorie)) return;
 
-    // リストに表示
+    // リスト要素を作成
     const li = document.createElement('li');
     li.textContent = `${item}：${calorie} kcal`;
+
+    // 削除ボタンを追加
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = '×';
+    deleteBtn.style.marginLeft = '10px';
+    deleteBtn.style.color = 'red';
+    deleteBtn.style.border = 'none';
+    deleteBtn.style.background = 'transparent';
+    deleteBtn.style.cursor = 'pointer';
+
+    // 削除ボタンの動作
+    deleteBtn.addEventListener('click', () => {
+      recordList.removeChild(li);
+      totalCalories -= calorie;
+      totalSpan.textContent = totalCalories;
+    });
+
+    li.appendChild(deleteBtn);
     recordList.appendChild(li);
 
-    // 合計カロリーに加算
     totalCalories += calorie;
     totalSpan.textContent = totalCalories;
 
-    // 入力欄をリセット
     itemInput.value = '';
     calorieInput.value = '';
   });
