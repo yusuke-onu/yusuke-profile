@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>カロリー管理アプリ</title>
+</head>
+<body>
+  <h1>カロリー管理アプリ（ゆうすけ）</h1>
+
+  <form id="calorie-form">
+    <input type="text" id="item" placeholder="食べたもの" required>
+    <input type="number" id="calorie" placeholder="カロリー" required>
+    <button type="submit">追加</button>
+  </form>
+
+  <h2>今日の合計：<span id="total">0</span> kcal</h2>
+
+  <ul id="record-list">
+    <!-- 記録がここに追加されます -->
+  </ul>
+</body>
+</html>
