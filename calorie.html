@@ -4,6 +4,40 @@
   <meta charset="UTF-8">
   <title>カロリー管理アプリ</title>
   <link rel="stylesheet" href="calorie.css">
+
+<script>
+  const form = document.getElementById('calorie-form');
+  const itemInput = document.getElementById('item');
+  const calorieInput = document.getElementById('calorie');
+  const recordList = document.getElementById('record-list');
+  const totalSpan = document.getElementById('total');
+
+  let totalCalories = 0;
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const item = itemInput.value;
+    const calorie = parseInt(calorieInput.value);
+
+    if (!item || isNaN(calorie)) return;
+
+    // リストに表示
+    const li = document.createElement('li');
+    li.textContent = `${item}：${calorie} kcal`;
+    recordList.appendChild(li);
+
+    // 合計カロリーに加算
+    totalCalories += calorie;
+    totalSpan.textContent = totalCalories;
+
+    // 入力欄をリセット
+    itemInput.value = '';
+    calorieInput.value = '';
+  });
+</script>
+
+  
 </head>
 <body>
   <h1>カロリー管理アプリ（ゆうすけ）</h1>
