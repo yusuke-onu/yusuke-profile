@@ -5,54 +5,78 @@
   <title>カロリー管理アプリ</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f7f7f7;
-      padding: 20px;
+      font-family: sans-serif;
       max-width: 600px;
-      margin: auto;
+      margin: 30px auto;
+      background: #f5f5f5;
+      padding: 20px;
     }
-
-    h1 {
-      color: #4caf50;
-      text-align: center;
-    }
-
     form {
       display: flex;
       gap: 10px;
       margin-bottom: 20px;
     }
-
-    input[type="text"],
-    input[type="number"] {
-      flex: 1;
-      padding: 8px;
+    input, button {
+      padding: 10px;
       font-size: 16px;
     }
-
-    button {
-      padding: 8px 16px;
-      background-color: #4caf50;
-      color: white;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #45a049;
-    }
-
-    #record-list {
-      list-style: none;
-      padding: 0;
-    }
-
     #record-list li {
-      background: white;
-      border: 1px solid #ccc;
-      padding: 8px;
+      background: #fff;
       margin-bottom: 5px;
+      padding: 10px;
+      border: 1px solid #ccc;
     }
   </style>
-</he
+</head>
+<body>
+  <h1>カロリー管理アプリ</h1>
+  <form id="calorie-form">
+    <input id="item" type="text" placeholder="食べたもの" required>
+    <input id="calorie" type="number" placeholder="カロリー" required>
+    <button type="submit">追加</button>
+  </form>
+
+  <h2>合計: <span id="total">0</span> kcal</h2>
+  <ul id="record-list"></ul>
+
+  <script>
+    const form = document.getElementById('calorie-form');
+    const itemInput = document.getElementById('item');
+    const calorieInput = document.getElementById('calorie');
+    const recordList = document.getElementById('record-list');
+    const totalSpan = document.getElementById('total');
+
+    let total = 0;
+    let records = [];
+
+    // 読み込み時に保存データを表示
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem('records');
+      if (saved) {
+        records = JSON.parse(saved);
+        records.forEach(({ item, calorie }) => addRecord(item, calorie));
+      }
+    });
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const item = itemInput.value.trim();
+      const calorie = parseInt(calorieInput.value);
+      if (!item || isNaN(calorie)) return;
+      addRecord(item, calorie);
+      records.push({ item, calorie });
+      localStorage.setItem('records', JSON.stringify(records));
+      itemInput.value = '';
+      calorieInput.value = '';
+    });
+
+    function addRecord(item, calorie) {
+      const li = document.createElement('li');
+      li.textContent = `${item}：${calorie} kcal`;
+      recordList.appendChild(li);
+      total += calorie;
+      totalSpan.textContent = total;
+    }
+  </script>
+</body>
+</html>
