@@ -145,53 +145,20 @@
   </div>
 
   <script>
-    const GOALS = { cal: 2000, pro: 150, fat: 60, carb: 250 };
+    document.getElementById('item').addEventListener('input', () => {
+      const foodName = document.getElementById('item').value.trim();
+      const quantity = parseFloat(document.getElementById('quantity').value) || 1;
+      const unit = document.getElementById('unit').value;
 
-    function updateGoalDisplay(totals) {
-      document.getElementById('goal-cal').textContent = `カロリー: ${totals.cal} / ${GOALS.cal} kcal`;
-      document.getElementById('goal-pro').textContent = `たんぱく質: ${totals.pro} / ${GOALS.pro} g`;
-      document.getElementById('goal-fat').textContent = `脂質: ${totals.fat} / ${GOALS.fat} g`;
-      document.getElementById('goal-carb').textContent = `炭水化物: ${totals.carb} / ${GOALS.carb} g`;
-    }
-
-    document.getElementById('close-modal').onclick = () => {
-      document.getElementById('food-modal').style.display = 'none';
-    };
-
-    const tableBody = document.getElementById('food-table');
-    const foodData = {
-      "卵": { cal: 151, pro: 12.3, fat: 10.3, carb: 0.3, unit: { "個": 50 } },
-      "ご飯": { cal: 168, pro: 2.5, fat: 0.3, carb: 37.1, unit: { "杯": 150 } },
-      "バナナ": { cal: 86, pro: 1.1, fat: 0.2, carb: 22.5, unit: { "本": 100 } },
-      "納豆": { cal: 200, pro: 16.5, fat: 10.0, carb: 12.1, unit: { "パック": 50 } },
-      "むね肉（鳥）": { cal: 108, pro: 23.3, fat: 1.5, carb: 0.1, unit: { "g": 100 } },
-      "ささみ": { cal: 105, pro: 23.0, fat: 0.8, carb: 0.0, unit: { "g": 100 } },
-      "牛肉": { cal: 298, pro: 17.1, fat: 24.7, carb: 0.5, unit: { "g": 100 } },
-      "豚肉": { cal: 263, pro: 17.1, fat: 20.1, carb: 0.2, unit: { "g": 100 } },
-      "うどん": { cal: 105, pro: 2.6, fat: 0.4, carb: 21.6, unit: { "玉": 200 } },
-      "そば": { cal: 130, pro: 4.8, fat: 0.9, carb: 26.0, unit: { "玉": 180 } },
-      "牛乳": { cal: 67, pro: 3.3, fat: 3.8, carb: 4.8, unit: { "ml": 100 } },
-      "プロテイン": { cal: 120, pro: 23.0, fat: 2.0, carb: 3.0, unit: { "杯": 30 } },
-      "食パン": { cal: 264, pro: 9.3, fat: 4.2, carb: 47.1, unit: { "枚": 90 } },
-      "ヨーグルト": { cal: 62, pro: 3.6, fat: 3.0, carb: 5.0, unit: { "個": 100 } },
-      "アボカド": { cal: 187, pro: 2.5, fat: 18.7, carb: 6.2, unit: { "個": 100 } },
-      "じゃがいも": { cal: 76, pro: 1.6, fat: 0.1, carb: 17.6, unit: { "個": 150 } },
-      "にんじん": { cal: 37, pro: 0.6, fat: 0.1, carb: 8.7, unit: { "本": 100 } }
-    };
-
-    for (const name in foodData) {
-      const { cal, pro, fat, carb, unit } = foodData[name];
-      const unitName = Object.keys(unit)[0];
-      const row = `<tr>
-        <td>${name}</td>
-        <td>${cal}</td>
-        <td>${pro}</td>
-        <td>${fat}</td>
-        <td>${carb}</td>
-        <td>${unitName}（${unit[unitName]}g）</td>
-      </tr>`;
-      tableBody.insertAdjacentHTML('beforeend', row);
-    }
+      const food = foodData[foodName];
+      if (food && food.unit[unit]) {
+        const base = food.unit[unit];
+        document.getElementById('calorie').value = (food.cal * quantity * base / 100).toFixed(1);
+        document.getElementById('protein').value = (food.pro * quantity * base / 100).toFixed(1);
+        document.getElementById('fat').value = (food.fat * quantity * base / 100).toFixed(1);
+        document.getElementById('carbs').value = (food.carb * quantity * base / 100).toFixed(1);
+      }
+    });
   </script>
 </body>
 </html>
