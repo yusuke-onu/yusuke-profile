@@ -83,6 +83,8 @@
       "納豆": { cal: 200, pro: 16.5, fat: 10.0, carb: 12.1, unit: { "パック": 50 } }
     };
 
+    const usageCounts = JSON.parse(localStorage.getItem('usageCounts') || '{}');
+
     const itemInput = document.getElementById('item');
     const quantityInput = document.getElementById('quantity');
     const unitSelect = document.getElementById('unit');
@@ -100,20 +102,29 @@
     let records = {};
     let chart = null;
 
-    for (const food in foodData) {
-      const option = document.createElement('option');
-      option.value = food;
-      suggestions.appendChild(option);
+    function updateSuggestions() {
+      const foods = Object.keys(foodData);
+      foods.sort((a, b) => (usageCounts[b] || 0) - (usageCounts[a] || 0));
+      suggestions.innerHTML = '';
+      for (const food of foods) {
+        const option = document.createElement('option');
+        option.value = food;
+        suggestions.appendChild(option);
+      }
     }
 
-    itemInput.addEventListener('blur', () => {
-      const food = itemInput.value.trim();
-      if (foodData[food]) {
-        calorieInput.value = foodData[food].cal;
-        proteinInput.value = foodData[food].pro;
-        fatInput.value = foodData[food].fat;
-        carbsInput.value = foodData[food].carb;
-        const unitOptions = Object.keys(foodData[food].unit);
+    updateSuggestions();
+
+    itemInput.addEventListener('input', () => {
+      const input = itemInput.value.trim();
+      const matched = Object.keys(foodData).find(food => food.includes(input));
+      if (matched) {
+        const food = foodData[matched];
+        calorieInput.value = food.cal;
+        proteinInput.value = food.pro;
+        fatInput.value = food.fat;
+        carbsInput.value = food.carb;
+        const unitOptions = Object.keys(food.unit);
         unitSelect.innerHTML = unitOptions.map(u => `<option value="${u}">${u}</option>`).join('');
       }
     });
@@ -149,6 +160,8 @@
       const fat = parseFloat(fatInput.value);
       const carb = parseFloat(carbsInput.value);
 
+      if (!item || isNaN(quantity) || isNaN(cal)) return;
+
       const unitFactor = foodData[item]?.unit?.[unit] || 100;
       const ratio = quantity * unitFactor / 100;
 
@@ -159,6 +172,11 @@
 
       if (!records[today]) records[today] = [];
       records[today].push({ item, cal: calTotal, pro: proTotal, fat: fatTotal, carb: carbTotal });
+
+      usageCounts[item] = (usageCounts[item] || 0) + 1;
+      localStorage.setItem('usageCounts', JSON.stringify(usageCounts));
+      updateSuggestions();
+
       saveData();
       if (dateSelect.value === today) {
         addRecord(item, calTotal, proTotal, fatTotal, carbTotal);
