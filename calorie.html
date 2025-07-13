@@ -30,6 +30,10 @@
 </head>
 <body>
   <h1>カロリー管理アプリ</h1>
+
+  <label for="date-select">日付を選択：</label>
+<select id="date-select"></select>
+
   <form id="calorie-form">
     <input id="item" type="text" placeholder="食べたもの" required>
     <input id="calorie" type="number" placeholder="カロリー" required>
@@ -44,22 +48,17 @@
   const calorieInput = document.getElementById('calorie');
   const recordList = document.getElementById('record-list');
   const totalSpan = document.getElementById('total');
+  const dateSelect = document.getElementById('date-select');
 
-  let total = 0;
   let records = {};
+  const today = new Date().toISOString().split('T')[0];
 
-  const today = new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"
-
-  // 読み込み時に今日の記録を表示
   window.addEventListener('DOMContentLoaded', () => {
     const saved = localStorage.getItem('records');
     if (saved) {
       records = JSON.parse(saved);
-      if (records[today]) {
-        records[today].forEach(({ item, calorie }) => {
-          addRecord(item, calorie);
-        });
-      }
+      populateDateOptions();
+      showRecords(today);
     }
   });
 
@@ -69,19 +68,46 @@
     const calorie = parseInt(calorieInput.value);
     if (!item || isNaN(calorie)) return;
 
-    addRecord(item, calorie);
-
-    if (!records[today]) {
-      records[today] = [];
-    }
+    if (!records[today]) records[today] = [];
     records[today].push({ item, calorie });
     saveData();
+
+    if (dateSelect.value === today) {
+      addRecord(item, calorie);
+      updateTotal();
+    }
 
     itemInput.value = '';
     calorieInput.value = '';
   });
 
-  function addRecord(item, calorie) {
+  dateSelect.addEventListener('change', () => {
+    showRecords(dateSelect.value);
+  });
+
+  function populateDateOptions() {
+    dateSelect.innerHTML = "";
+    const dates = Object.keys(records).sort().reverse();
+    dates.forEach(date => {
+      const option = document.createElement('option');
+      option.value = date;
+      option.textContent = date;
+      dateSelect.appendChild(option);
+    });
+    dateSelect.value = today;
+  }
+
+  function showRecords(date) {
+    recordList.innerHTML = "";
+    totalSpan.textContent = "0";
+    if (!records[date]) return;
+    records[date].forEach(({ item, calorie }) => {
+      addRecord(item, calorie, date);
+    });
+    updateTotal();
+  }
+
+  function addRecord(item, calorie, date = today) {
     const li = document.createElement('li');
     li.textContent = `${item}：${calorie} kcal`;
 
@@ -95,22 +121,25 @@
 
     deleteBtn.addEventListener('click', () => {
       recordList.removeChild(li);
-      total -= calorie;
-      totalSpan.textContent = total;
-
-      // 今日の配列から削除
-      records[today] = records[today].filter(r => !(r.item === item && r.calorie === calorie));
+      records[date] = records[date].filter(r => !(r.item === item && r.calorie === calorie));
       saveData();
+      updateTotal();
     });
 
     li.appendChild(deleteBtn);
     recordList.appendChild(li);
-    total += calorie;
-    totalSpan.textContent = total;
+  }
+
+  function updateTotal() {
+    const date = dateSelect.value;
+    if (!records[date]) return;
+    const sum = records[date].reduce((acc, cur) => acc + cur.calorie, 0);
+    totalSpan.textContent = sum;
   }
 
   function saveData() {
     localStorage.setItem('records', JSON.stringify(records));
+    populateDateOptions();
   }
 </script>
 
