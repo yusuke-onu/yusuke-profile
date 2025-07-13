@@ -42,6 +42,9 @@
     <button type="submit">追加</button>
   </form>
 
+  <button id="clear-all" style="margin-bottom: 20px; background-color: crimson; color: white;">すべて削除</button>
+
+
   <h2>📈 カロリー推移グラフ</h2>
   <canvas id="calorieChart" width="400" height="200"></canvas>
 
@@ -69,6 +72,27 @@
         drawChart();
       }
     });
+
+    const clearAllBtn = document.getElementById('clear-all');
+
+clearAllBtn.addEventListener('click', () => {
+  if (confirm("すべての記録を削除します。よろしいですか？")) {
+    localStorage.removeItem('records');
+    records = {};
+    recordList.innerHTML = "";
+    totalSpan.textContent = "0";
+    populateDateOptions();
+    drawChart();
+  }
+});
+#clear-all {
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
 
     form.addEventListener('submit', e => {
       e.preventDefault();
