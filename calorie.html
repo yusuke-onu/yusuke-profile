@@ -38,45 +38,83 @@
 
   <h2>合計: <span id="total">0</span> kcal</h2>
   <ul id="record-list"></ul>
+<script>
+  const form = document.getElementById('calorie-form');
+  const itemInput = document.getElementById('item');
+  const calorieInput = document.getElementById('calorie');
+  const recordList = document.getElementById('record-list');
+  const totalSpan = document.getElementById('total');
 
-  <script>
-    const form = document.getElementById('calorie-form');
-    const itemInput = document.getElementById('item');
-    const calorieInput = document.getElementById('calorie');
-    const recordList = document.getElementById('record-list');
-    const totalSpan = document.getElementById('total');
+  let total = 0;
+  let records = {};
 
-    let total = 0;
-    let records = [];
+  const today = new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"
 
-    // 読み込み時に保存データを表示
-    window.addEventListener('DOMContentLoaded', () => {
-      const saved = localStorage.getItem('records');
-      if (saved) {
-        records = JSON.parse(saved);
-        records.forEach(({ item, calorie }) => addRecord(item, calorie));
+  // 読み込み時に今日の記録を表示
+  window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('records');
+    if (saved) {
+      records = JSON.parse(saved);
+      if (records[today]) {
+        records[today].forEach(({ item, calorie }) => {
+          addRecord(item, calorie);
+        });
       }
-    });
-
-    form.addEventListener('submit', e => {
-      e.preventDefault();
-      const item = itemInput.value.trim();
-      const calorie = parseInt(calorieInput.value);
-      if (!item || isNaN(calorie)) return;
-      addRecord(item, calorie);
-      records.push({ item, calorie });
-      localStorage.setItem('records', JSON.stringify(records));
-      itemInput.value = '';
-      calorieInput.value = '';
-    });
-
-    function addRecord(item, calorie) {
-      const li = document.createElement('li');
-      li.textContent = `${item}：${calorie} kcal`;
-      recordList.appendChild(li);
-      total += calorie;
-      totalSpan.textContent = total;
     }
-  </script>
+  });
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const item = itemInput.value.trim();
+    const calorie = parseInt(calorieInput.value);
+    if (!item || isNaN(calorie)) return;
+
+    addRecord(item, calorie);
+
+    if (!records[today]) {
+      records[today] = [];
+    }
+    records[today].push({ item, calorie });
+    saveData();
+
+    itemInput.value = '';
+    calorieInput.value = '';
+  });
+
+  function addRecord(item, calorie) {
+    const li = document.createElement('li');
+    li.textContent = `${item}：${calorie} kcal`;
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = ' ×';
+    deleteBtn.style.marginLeft = '10px';
+    deleteBtn.style.color = 'red';
+    deleteBtn.style.cursor = 'pointer';
+    deleteBtn.style.background = 'transparent';
+    deleteBtn.style.border = 'none';
+
+    deleteBtn.addEventListener('click', () => {
+      recordList.removeChild(li);
+      total -= calorie;
+      totalSpan.textContent = total;
+
+      // 今日の配列から削除
+      records[today] = records[today].filter(r => !(r.item === item && r.calorie === calorie));
+      saveData();
+    });
+
+    li.appendChild(deleteBtn);
+    recordList.appendChild(li);
+    total += calorie;
+    totalSpan.textContent = total;
+  }
+
+  function saveData() {
+    localStorage.setItem('records', JSON.stringify(records));
+  }
+</script>
+
+  
+
 </body>
 </html>
