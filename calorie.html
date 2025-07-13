@@ -2,9 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>カロリー管理アプリ</title>
   <style>
     body {
@@ -13,16 +11,29 @@
       margin: 30px auto;
       background: #f5f5f5;
       padding: 20px;
+      box-sizing: border-box;
     }
+
     form {
       display: flex;
+      flex-direction: column;
       gap: 10px;
       margin-bottom: 20px;
     }
-    input, button {
+
+    @media (min-width: 500px) {
+      form {
+        flex-direction: row;
+      }
+    }
+
+    input, button, select {
       padding: 10px;
       font-size: 16px;
+      width: 100%;
+      box-sizing: border-box;
     }
+
     #record-list li {
       background: #fff;
       margin-bottom: 5px;
@@ -31,45 +42,16 @@
     }
 
     #clear-all {
-  padding: 10px;
-  font-size: 16px;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
-}
-body {
-  font-family: sans-serif;
-  max-width: 600px;
-  margin: 30px auto;
-  background: #f5f5f5;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-@media (min-width: 500px) {
-  form {
-    flex-direction: row;
-  }
-}
-
-input, button, select {
-  padding: 10px;
-  font-size: 16px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-    
-
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      background-color: crimson;
+      color: white;
+      margin-bottom: 20px;
+    }
   </style>
-  <!-- Chart.js 読み込み -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -84,8 +66,7 @@ input, button, select {
     <button type="submit">追加</button>
   </form>
 
-  <button id="clear-all" style="margin-bottom: 20px; background-color: crimson; color: white;">すべて削除</button>
-
+  <button id="clear-all">すべて削除</button>
 
   <h2>📈 カロリー推移グラフ</h2>
   <canvas id="calorieChart" width="400" height="200"></canvas>
@@ -100,6 +81,7 @@ input, button, select {
     const recordList = document.getElementById('record-list');
     const totalSpan = document.getElementById('total');
     const dateSelect = document.getElementById('date-select');
+    const clearAllBtn = document.getElementById('clear-all');
 
     let records = {};
     const today = new Date().toISOString().split('T')[0];
@@ -115,20 +97,16 @@ input, button, select {
       }
     });
 
-    const clearAllBtn = document.getElementById('clear-all');
-
-clearAllBtn.addEventListener('click', () => {
-  if (confirm("すべての記録を削除します。よろしいですか？")) {
-    localStorage.removeItem('records');
-    records = {};
-    recordList.innerHTML = "";
-    totalSpan.textContent = "0";
-    populateDateOptions();
-    drawChart();
-  }
-});
-
-
+    clearAllBtn.addEventListener('click', () => {
+      if (confirm("すべての記録を削除します。よろしいですか？")) {
+        localStorage.removeItem('records');
+        records = {};
+        recordList.innerHTML = "";
+        totalSpan.textContent = "0";
+        populateDateOptions();
+        drawChart();
+      }
+    });
 
     form.addEventListener('submit', e => {
       e.preventDefault();
@@ -208,7 +186,7 @@ clearAllBtn.addEventListener('click', () => {
     function saveData() {
       localStorage.setItem('records', JSON.stringify(records));
       populateDateOptions();
-      drawChart(); // グラフ更新！
+      drawChart();
     }
 
     function drawChart() {
