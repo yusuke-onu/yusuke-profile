@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>カロリー管理アプリ（完全版）</title>
+  <title>カロリー管理アプリ（単位対応）</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -25,11 +26,10 @@
         flex-wrap: wrap;
       }
     }
-    input, button, select {
+    input, select, button {
       padding: 10px;
       font-size: 16px;
-      width: 100%;
-      box-sizing: border-box;
+      flex: 1;
     }
     #record-list li {
       background: #fff;
@@ -37,238 +37,87 @@
       padding: 10px;
       border: 1px solid #ccc;
     }
-    #clear-all, #goal-check {
-      padding: 10px;
-      font-size: 16px;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-      background-color: crimson;
-      color: white;
-      margin: 5px 0;
-    }
-    datalist {
-      display: none;
-    }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <h1>カロリー管理アプリ（完全版）</h1>
-
-  <label for="date-select">日付を選択：</label>
-  <select id="date-select"></select>
-
+  <h1>カロリー管理アプリ</h1>
   <form id="calorie-form">
-    <input id="item" type="text" placeholder="食べたもの" list="suggestions" required>
-    <input id="weight" type="number" placeholder="g" required>
-    <input id="calorie" type="number" placeholder="カロリー" readonly>
-    <input id="protein" type="number" placeholder="たんぱく質 (g)" readonly>
-    <input id="fat" type="number" placeholder="脂質 (g)" readonly>
-    <input id="carbs" type="number" placeholder="炭水化物 (g)" readonly>
+    <input id="item" type="text" placeholder="食べたもの" required>
+    <input id="quantity" type="number" placeholder="数量" required>
+    <select id="unit">
+      <option value="g">g</option>
+      <option value="個">個</option>
+      <option value="本">本</option>
+      <option value="杯">杯</option>
+    </select>
+    <input id="calorie" type="number" placeholder="カロリー">
+    <input id="protein" type="number" placeholder="たんぱく質 (g)">
+    <input id="fat" type="number" placeholder="脂質 (g)">
+    <input id="carbs" type="number" placeholder="炭水化物 (g)">
     <button type="submit">追加</button>
   </form>
-
-  <button id="show-food-list">🍱 食品候補リスト</button>
-  <button id="clear-all">🗑 すべて削除</button>
-  <button id="goal-check">🎯 目標と比較</button>
-
-  <h2>📈 カロリー推移グラフ</h2>
-  <canvas id="calorieChart" width="400" height="200"></canvas>
-
-  <h2>合計: <span id="total">0</span> kcal</h2>
   <ul id="record-list"></ul>
 
-  <datalist id="suggestions">
-    <option value="バナナ">
-    <option value="鶏むね肉">
-    <option value="ごはん">
-    <option value="卵">
-    <option value="納豆">
-    <option value="豆腐">
-    <option value="さけ">
-  </datalist>
-
   <script>
-    const form = document.getElementById('calorie-form');
     const itemInput = document.getElementById('item');
-    const weightInput = document.getElementById('weight');
+    const quantityInput = document.getElementById('quantity');
+    const unitSelect = document.getElementById('unit');
     const calorieInput = document.getElementById('calorie');
     const proteinInput = document.getElementById('protein');
     const fatInput = document.getElementById('fat');
     const carbsInput = document.getElementById('carbs');
+    const form = document.getElementById('calorie-form');
     const recordList = document.getElementById('record-list');
-    const totalSpan = document.getElementById('total');
-    const dateSelect = document.getElementById('date-select');
-    const clearAllBtn = document.getElementById('clear-all');
-    const goalBtn = document.getElementById('goal-check');
-    const foodListBtn = document.getElementById('show-food-list');
 
-    const FOOD_DB = {
-      "バナナ": { calorie: 86, protein: 1.1, fat: 0.3, carbs: 22.8 },
-      "鶏むね肉": { calorie: 165, protein: 31, fat: 3.6, carbs: 0 },
-      "ごはん": { calorie: 168, protein: 2.5, fat: 0.3, carbs: 37.1 },
-      "卵": { calorie: 151, protein: 12.3, fat: 10.3, carbs: 0.3 },
-      "納豆": { calorie: 200, protein: 16.5, fat: 10, carbs: 12.1 },
-      "豆腐": { calorie: 55, protein: 4.9, fat: 3, carbs: 1.4 },
-      "さけ": { calorie: 200, protein: 22, fat: 13, carbs: 0.1 },
+    const unitTable = {
+      '卵': { '個': 50 },
+      'バナナ': { '本': 100 },
+      'ご飯': { '杯': 150 },
+      'g': 1
     };
 
-    const PFC_GOAL = { calorie: 2000, protein: 120, fat: 60, carbs: 250 };
-
-    let records = {};
-    const today = new Date().toISOString().split('T')[0];
-    let chart = null;
-
-    window.addEventListener('DOMContentLoaded', () => {
-      const saved = localStorage.getItem('records');
-      if (saved) {
-        records = JSON.parse(saved);
-        populateDateOptions();
-        showRecords(today);
-        drawChart();
+    itemInput.addEventListener('blur', async () => {
+      const food = itemInput.value.trim();
+      if (!food) return;
+      try {
+        const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(food)}.json`);
+        const data = await res.json();
+        if (data.status === 1) {
+          const n = data.product.nutriments;
+          if (n['energy-kcal_100g']) calorieInput.value = n['energy-kcal_100g'];
+          if (n.proteins_100g) proteinInput.value = n.proteins_100g;
+          if (n.fat_100g) fatInput.value = n.fat_100g;
+          if (n.carbohydrates_100g) carbsInput.value = n.carbohydrates_100g;
+        }
+      } catch (err) {
+        console.error('APIエラー:', err);
       }
     });
 
-    itemInput.addEventListener('blur', () => {
-      const food = itemInput.value;
-      const data = FOOD_DB[food];
-      if (data && weightInput.value) {
-        const ratio = parseFloat(weightInput.value) / 100;
-        calorieInput.value = Math.round(data.calorie * ratio);
-        proteinInput.value = (data.protein * ratio).toFixed(1);
-        fatInput.value = (data.fat * ratio).toFixed(1);
-        carbsInput.value = (data.carbs * ratio).toFixed(1);
-      }
-    });
-
-    weightInput.addEventListener('input', () => {
-      itemInput.dispatchEvent(new Event('blur'));
-    });
-
-    clearAllBtn.onclick = () => {
-      if (confirm('すべて削除しますか？')) {
-        localStorage.removeItem('records');
-        records = {};
-        recordList.innerHTML = "";
-        totalSpan.textContent = "0";
-        populateDateOptions();
-        drawChart();
-      }
-    };
-
-    foodListBtn.onclick = () => {
-      alert(Object.keys(FOOD_DB).join('\n'));
-    };
-
-    goalBtn.onclick = () => {
-      const date = dateSelect.value;
-      if (!records[date]) return;
-      const sum = records[date].reduce((acc, r) => {
-        return {
-          calorie: acc.calorie + (r.calorie || 0),
-          protein: acc.protein + (r.protein || 0),
-          fat: acc.fat + (r.fat || 0),
-          carbs: acc.carbs + (r.carbs || 0),
-        };
-      }, { calorie: 0, protein: 0, fat: 0, carbs: 0 });
-
-      alert(`🎯 目標との比較：\n
-カロリー ${sum.calorie}/${PFC_GOAL.calorie} kcal\n
-たんぱく質 ${sum.protein}/${PFC_GOAL.protein} g\n
-脂質 ${sum.fat}/${PFC_GOAL.fat} g\n
-炭水化物 ${sum.carbs}/${PFC_GOAL.carbs} g`);
-    };
-
-    form.onsubmit = (e) => {
+    form.addEventListener('submit', e => {
       e.preventDefault();
-      const item = itemInput.value;
-      const calorie = parseInt(calorieInput.value);
-      const protein = parseFloat(proteinInput.value);
+      const item = itemInput.value.trim();
+      const quantity = parseFloat(quantityInput.value);
+      const unit = unitSelect.value;
+      const cal = parseFloat(calorieInput.value);
+      const pro = parseFloat(proteinInput.value);
       const fat = parseFloat(fatInput.value);
-      const carbs = parseFloat(carbsInput.value);
-      if (!item || isNaN(calorie)) return;
+      const carb = parseFloat(carbsInput.value);
 
-      if (!records[today]) records[today] = [];
-      records[today].push({ item, calorie, protein, fat, carbs });
-      saveData();
+      const unitFactor = unitTable[item]?.[unit] || 1;
+      const ratio = (unit === 'g') ? quantity / 100 : (quantity * unitFactor) / 100;
 
-      if (dateSelect.value === today) {
-        addRecord(item, calorie, protein, fat, carbs);
-        updateTotal();
-      }
+      const calTotal = Math.round(cal * ratio);
+      const proTotal = Math.round(pro * ratio * 10) / 10;
+      const fatTotal = Math.round(fat * ratio * 10) / 10;
+      const carbTotal = Math.round(carb * ratio * 10) / 10;
+
+      const li = document.createElement('li');
+      li.textContent = `${item}（${quantity}${unit}）：${calTotal} kcal／P:${proTotal} F:${fatTotal} C:${carbTotal}`;
+      recordList.appendChild(li);
 
       form.reset();
-    };
-
-    dateSelect.onchange = () => showRecords(dateSelect.value);
-
-    function populateDateOptions() {
-      dateSelect.innerHTML = "";
-      const dates = Object.keys(records).sort().reverse();
-      for (const d of dates) {
-        const opt = document.createElement('option');
-        opt.value = d;
-        opt.textContent = d;
-        dateSelect.appendChild(opt);
-      }
-      dateSelect.value = today;
-    }
-
-    function showRecords(date) {
-      recordList.innerHTML = "";
-      totalSpan.textContent = "0";
-      if (!records[date]) return;
-      for (const { item, calorie, protein, fat, carbs } of records[date]) {
-        addRecord(item, calorie, protein, fat, carbs, date);
-      }
-      updateTotal();
-    }
-
-    function addRecord(item, calorie, protein, fat, carbs, date = today) {
-      const li = document.createElement('li');
-      li.innerHTML = `${item}：${calorie} kcal｜P${protein} F${fat} C${carbs}`;
-      const del = document.createElement('button');
-      del.textContent = ' ×';
-      del.style.marginLeft = '10px';
-      del.style.color = 'red';
-      del.onclick = () => {
-        records[date] = records[date].filter(r => r.item !== item || r.calorie !== calorie);
-        saveData();
-        showRecords(date);
-        drawChart();
-      };
-      li.appendChild(del);
-      recordList.appendChild(li);
-    }
-
-    function updateTotal() {
-      const date = dateSelect.value;
-      if (!records[date]) return;
-      const sum = records[date].reduce((acc, cur) => acc + cur.calorie, 0);
-      totalSpan.textContent = sum;
-    }
-
-    function saveData() {
-      localStorage.setItem('records', JSON.stringify(records));
-      populateDateOptions();
-      drawChart();
-    }
-
-    function drawChart() {
-      const labels = Object.keys(records).sort();
-      const data = labels.map(date => records[date].reduce((sum, r) => sum + r.calorie, 0));
-      const ctx = document.getElementById('calorieChart').getContext('2d');
-      if (chart) chart.destroy();
-      chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{ label: '合計カロリー（kcal）', data: data }]
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
-      });
-    }
+    });
   </script>
 </body>
 </html>
