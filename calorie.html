@@ -82,6 +82,15 @@
       padding: 10px;
       cursor: pointer;
     }
+    #goal-summary {
+      margin-top: 20px;
+      background: #e0f7fa;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    #goal-summary span {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -114,6 +123,14 @@
   <h2>合計: <span id="total">0</span> kcal</h2>
   <ul id="record-list"></ul>
 
+  <div id="goal-summary">
+    <strong>目標PFCとの比較</strong>
+    <span id="goal-cal">カロリー: 0 / 2000 kcal</span>
+    <span id="goal-pro">たんぱく質: 0 / 150 g</span>
+    <span id="goal-fat">脂質: 0 / 60 g</span>
+    <span id="goal-carb">炭水化物: 0 / 250 g</span>
+  </div>
+
   <div id="food-modal">
     <div id="food-modal-content">
       <h3>使用可能な食品一覧</h3>
@@ -128,6 +145,15 @@
   </div>
 
   <script>
+    const GOALS = { cal: 2000, pro: 150, fat: 60, carb: 250 };
+
+    function updateGoalDisplay(totals) {
+      document.getElementById('goal-cal').textContent = `カロリー: ${totals.cal} / ${GOALS.cal} kcal`;
+      document.getElementById('goal-pro').textContent = `たんぱく質: ${totals.pro} / ${GOALS.pro} g`;
+      document.getElementById('goal-fat').textContent = `脂質: ${totals.fat} / ${GOALS.fat} g`;
+      document.getElementById('goal-carb').textContent = `炭水化物: ${totals.carb} / ${GOALS.carb} g`;
+    }
+
     document.getElementById('close-modal').onclick = () => {
       document.getElementById('food-modal').style.display = 'none';
     };
