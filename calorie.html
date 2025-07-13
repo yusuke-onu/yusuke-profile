@@ -26,6 +26,15 @@
       padding: 10px;
       border: 1px solid #ccc;
     }
+
+    #clear-all {
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
   </style>
   <!-- Chart.js 読み込み -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -85,13 +94,7 @@ clearAllBtn.addEventListener('click', () => {
     drawChart();
   }
 });
-#clear-all {
-  padding: 10px;
-  font-size: 16px;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
-}
+
 
 
     form.addEventListener('submit', e => {
