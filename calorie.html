@@ -54,7 +54,8 @@
   <select id="date-select"></select>
 
   <form id="calorie-form">
-    <input id="item" type="text" placeholder="食べたもの" required>
+    <input id="item" type="text" placeholder="食べたもの" list="food-suggestions" required>
+    <datalist id="food-suggestions"></datalist>
     <input id="quantity" type="number" placeholder="数量" required>
     <select id="unit">
       <option value="g">g</option>
@@ -75,6 +76,13 @@
   <ul id="record-list"></ul>
 
   <script>
+    const foodData = {
+      "卵": { cal: 151, pro: 12.3, fat: 10.3, carb: 0.3, unit: { "個": 50 } },
+      "ご飯": { cal: 168, pro: 2.5, fat: 0.3, carb: 37.1, unit: { "杯": 150 } },
+      "バナナ": { cal: 86, pro: 1.1, fat: 0.2, carb: 22.5, unit: { "本": 100 } },
+      "納豆": { cal: 200, pro: 16.5, fat: 10.0, carb: 12.1, unit: { "パック": 50 } }
+    };
+
     const itemInput = document.getElementById('item');
     const quantityInput = document.getElementById('quantity');
     const unitSelect = document.getElementById('unit');
@@ -82,6 +90,7 @@
     const proteinInput = document.getElementById('protein');
     const fatInput = document.getElementById('fat');
     const carbsInput = document.getElementById('carbs');
+    const suggestions = document.getElementById('food-suggestions');
     const form = document.getElementById('calorie-form');
     const recordList = document.getElementById('record-list');
     const dateSelect = document.getElementById('date-select');
@@ -91,12 +100,23 @@
     let records = {};
     let chart = null;
 
-    const unitTable = {
-      '卵': { '個': 50 },
-      'バナナ': { '本': 100 },
-      'ご飯': { '杯': 150 },
-      'g': 1
-    };
+    for (const food in foodData) {
+      const option = document.createElement('option');
+      option.value = food;
+      suggestions.appendChild(option);
+    }
+
+    itemInput.addEventListener('blur', () => {
+      const food = itemInput.value.trim();
+      if (foodData[food]) {
+        calorieInput.value = foodData[food].cal;
+        proteinInput.value = foodData[food].pro;
+        fatInput.value = foodData[food].fat;
+        carbsInput.value = foodData[food].carb;
+        const unitOptions = Object.keys(foodData[food].unit);
+        unitSelect.innerHTML = unitOptions.map(u => `<option value="${u}">${u}</option>`).join('');
+      }
+    });
 
     window.addEventListener('DOMContentLoaded', () => {
       const saved = localStorage.getItem('records');
@@ -129,8 +149,8 @@
       const fat = parseFloat(fatInput.value);
       const carb = parseFloat(carbsInput.value);
 
-      const unitFactor = unitTable[item]?.[unit] || 1;
-      const ratio = (unit === 'g') ? quantity / 100 : (quantity * unitFactor) / 100;
+      const unitFactor = foodData[item]?.unit?.[unit] || 100;
+      const ratio = quantity * unitFactor / 100;
 
       const calTotal = Math.round(cal * ratio);
       const proTotal = Math.round(pro * ratio * 10) / 10;
@@ -226,24 +246,6 @@
         }
       });
     }
-
-    itemInput.addEventListener('blur', async () => {
-      const food = itemInput.value.trim();
-      if (!food) return;
-      try {
-        const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(food)}.json`);
-        const data = await res.json();
-        if (data.status === 1) {
-          const n = data.product.nutriments;
-          if (n['energy-kcal_100g']) calorieInput.value = n['energy-kcal_100g'];
-          if (n.proteins_100g) proteinInput.value = n.proteins_100g;
-          if (n.fat_100g) fatInput.value = n.fat_100g;
-          if (n.carbohydrates_100g) carbsInput.value = n.carbohydrates_100g;
-        }
-      } catch (err) {
-        console.error('APIエラー:', err);
-      }
-    });
   </script>
 </body>
 </html>
