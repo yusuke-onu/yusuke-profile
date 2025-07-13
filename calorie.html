@@ -26,6 +26,8 @@
       padding: 10px;
       border: 1px solid #ccc;
     }
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   </style>
 </head>
 <body>
@@ -39,9 +41,12 @@
     <input id="calorie" type="number" placeholder="カロリー" required>
     <button type="submit">追加</button>
   </form>
+<h2>📈 カロリー推移グラフ</h2>
+<canvas id="calorieChart" width="400" height="200"></canvas>
 
   <h2>合計: <span id="total">0</span> kcal</h2>
   <ul id="record-list"></ul>
+  
 <script>
   const form = document.getElementById('calorie-form');
   const itemInput = document.getElementById('item');
@@ -122,7 +127,44 @@
     deleteBtn.addEventListener('click', () => {
       recordList.removeChild(li);
       records[date] = records[date].filter(r => !(r.item === item && r.calorie === calorie));
-      saveData();
+      function saveData() {
+  localStorage.setItem('records', JSON.stringify(records));
+  populateDateOptions();
+  drawChart(); // ← グラフを更新！
+}
+
+      let chart = null;
+
+function drawChart() {
+  const labels = Object.keys(records).sort();
+  const data = labels.map(date => {
+    return records[date].reduce((sum, item) => sum + item.calorie, 0);
+  });
+
+  const ctx = document.getElementById('calorieChart').getContext('2d');
+
+  if (chart) chart.destroy(); // 再描画前に削除
+
+  chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '合計カロリー（kcal）',
+        data: data
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
       updateTotal();
     });
 
