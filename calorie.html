@@ -24,6 +24,7 @@
     @media (min-width: 500px) {
       form {
         flex-direction: row;
+        flex-wrap: wrap;
       }
     }
 
@@ -60,14 +61,14 @@
   <label for="date-select">日付を選択：</label>
   <select id="date-select"></select>
 
- <form id="calorie-form">
-  <input id="item" type="text" placeholder="食べたもの" required>
-  <input id="calorie" type="number" placeholder="カロリー" required>
-  <input id="protein" type="number" placeholder="たんぱく質 (g)">
-  <input id="fat" type="number" placeholder="脂質 (g)">
-  <input id="carbs" type="number" placeholder="炭水化物 (g)">
-  <button type="submit">追加</button>
-</form>
+  <form id="calorie-form">
+    <input id="item" type="text" placeholder="食べたもの" required>
+    <input id="calorie" type="number" placeholder="カロリー" required>
+    <input id="protein" type="number" placeholder="たんぱく質 (g)">
+    <input id="fat" type="number" placeholder="脂質 (g)">
+    <input id="carbs" type="number" placeholder="炭水化物 (g)">
+    <button type="submit">追加</button>
+  </form>
 
   <button id="clear-all">すべて削除</button>
 
@@ -81,6 +82,9 @@
     const form = document.getElementById('calorie-form');
     const itemInput = document.getElementById('item');
     const calorieInput = document.getElementById('calorie');
+    const proteinInput = document.getElementById('protein');
+    const fatInput = document.getElementById('fat');
+    const carbsInput = document.getElementById('carbs');
     const recordList = document.getElementById('record-list');
     const totalSpan = document.getElementById('total');
     const dateSelect = document.getElementById('date-select');
@@ -115,19 +119,25 @@
       e.preventDefault();
       const item = itemInput.value.trim();
       const calorie = parseInt(calorieInput.value);
+      const protein = parseFloat(proteinInput.value) || 0;
+      const fat = parseFloat(fatInput.value) || 0;
+      const carbs = parseFloat(carbsInput.value) || 0;
       if (!item || isNaN(calorie)) return;
 
       if (!records[today]) records[today] = [];
-      records[today].push({ item, calorie });
+      records[today].push({ item, calorie, protein, fat, carbs });
       saveData();
 
       if (dateSelect.value === today) {
-        addRecord(item, calorie);
+        addRecord(item, calorie, protein, fat, carbs);
         updateTotal();
       }
 
       itemInput.value = '';
       calorieInput.value = '';
+      proteinInput.value = '';
+      fatInput.value = '';
+      carbsInput.value = '';
     });
 
     dateSelect.addEventListener('change', () => {
@@ -150,15 +160,15 @@
       recordList.innerHTML = "";
       totalSpan.textContent = "0";
       if (!records[date]) return;
-      records[date].forEach(({ item, calorie }) => {
-        addRecord(item, calorie, date);
+      records[date].forEach(({ item, calorie, protein, fat, carbs }) => {
+        addRecord(item, calorie, protein, fat, carbs, date);
       });
       updateTotal();
     }
 
-    function addRecord(item, calorie, date = today) {
+    function addRecord(item, calorie, protein, fat, carbs, date = today) {
       const li = document.createElement('li');
-      li.textContent = `${item}：${calorie} kcal`;
+      li.textContent = `${item}：${calorie} kcal / P:${protein}g F:${fat}g C:${carbs}g`;
 
       const deleteBtn = document.createElement('button');
       deleteBtn.textContent = ' ×';
@@ -221,37 +231,36 @@
       });
     }
 
+    // 🔍 食品名からPFC自動取得（OpenFoodFacts API）
     itemInput.addEventListener('blur', async () => {
-  const food = itemInput.value.trim();
-  if (!food) return;
+      const food = itemInput.value.trim();
+      if (!food) return;
 
-  try {
-    const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(food)}.json`);
-    const data = await response.json();
+      try {
+        const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(food)}.json`);
+        const data = await response.json();
 
-    if (data.status === 1) {
-      const nutrients = data.product.nutriments;
-
-      if (nutrients['energy-kcal_100g']) {
-        calorieInput.value = Math.round(nutrients['energy-kcal_100g']);
+        if (data.status === 1) {
+          const nutrients = data.product.nutriments;
+          if (nutrients['energy-kcal_100g']) {
+            calorieInput.value = Math.round(nutrients['energy-kcal_100g']);
+          }
+          if (nutrients.proteins_100g) {
+            proteinInput.value = Math.round(nutrients.proteins_100g * 10) / 10;
+          }
+          if (nutrients.fat_100g) {
+            fatInput.value = Math.round(nutrients.fat_100g * 10) / 10;
+          }
+          if (nutrients.carbohydrates_100g) {
+            carbsInput.value = Math.round(nutrients.carbohydrates_100g * 10) / 10;
+          }
+        } else {
+          console.log('データが見つかりませんでした');
+        }
+      } catch (error) {
+        console.error('APIエラー:', error);
       }
-      if (nutrients.proteins_100g) {
-        document.getElementById('protein').value = Math.round(nutrients.proteins_100g * 10) / 10;
-      }
-      if (nutrients.fat_100g) {
-        document.getElementById('fat').value = Math.round(nutrients.fat_100g * 10) / 10;
-      }
-      if (nutrients.carbohydrates_100g) {
-        document.getElementById('carbs').value = Math.round(nutrients.carbohydrates_100g * 10) / 10;
-      }
-    } else {
-      console.log('データが見つかりませんでした');
-    }
-  } catch (error) {
-    console.error('APIエラー:', error);
-  }
-});
-
+    });
   </script>
 </body>
 </html>
