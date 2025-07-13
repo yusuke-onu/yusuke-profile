@@ -145,6 +145,21 @@
   </div>
 
   <script>
+    // 日付選択肢を生成
+    const dateSelect = document.getElementById('date-select');
+    const today = new Date();
+    for (let i = 0; i < 30; i++) {
+      const date = new Date();
+      date.setDate(today.getDate() - i);
+      const ymd = date.toISOString().split('T')[0];
+      const option = document.createElement('option');
+      option.value = ymd;
+      option.textContent = ymd;
+      dateSelect.appendChild(option);
+    }
+    dateSelect.value = today.toISOString().split('T')[0];
+
+    // 入力補完
     document.getElementById('item').addEventListener('input', () => {
       const foodName = document.getElementById('item').value.trim();
       const quantity = parseFloat(document.getElementById('quantity').value) || 1;
