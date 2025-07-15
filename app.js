@@ -34,7 +34,7 @@ const foodData = {
   "うどん": { cal: 105, pro: 2.6, fat: 0.4, carb: 21.6, unit: { "玉": 200 } },
   "そば": { cal: 130, pro: 4.8, fat: 0.9, carb: 26.0, unit: { "玉": 180 } },
   "牛乳": { cal: 67, pro: 3.3, fat: 3.8, carb: 4.8, unit: { "ml": 100 } },
-  "プロテイン": { cal: 120, pro: 23.0, fat: 2.0, carb: 3.0, unit: { "杯": 30 } }
+  "プロテイン": { cal: 120, pro: 23.0, fat: 2.0, carb: 3.0, unit: { "杯": 30 } },
   "鶏もも肉": { cal: 98, pro: 8.0, fat: 7.0, carb: 0.0, unit: { "g": 50 } }
 };
 
