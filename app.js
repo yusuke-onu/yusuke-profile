@@ -234,3 +234,18 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+function saveToSpreadsheet(record) {
+  fetch('https://script.google.com/macros/s/AKfycbxTF-IaPKdEV2cDDCHnYDWCHtC7Qoz8EU0jXbDR3a-Rk60vHIdgOkLv4V1EjVyAaJ_c/exec', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(record)
+  })
+  .then(res => res.text())
+  .then(result => {
+    console.log("スプレッドシートに保存:", result);
+  })
+  .catch(err => {
+    console.error("スプレッドシート保存失敗:", err);
+  });
+}
