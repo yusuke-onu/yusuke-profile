@@ -24,7 +24,6 @@ let chart = null;
 
 const foodData = {
   "卵": { cal: 151, pro: 12.3, fat: 10.3, carb: 0.3, unit: { "個": 50 } },
-  "ご飯": { cal: 168, pro: 2.5, fat: 0.3, carb: 37.1, unit: { "杯": 150 } },
   "バナナ": { cal: 86, pro: 1.1, fat: 0.2, carb: 22.5, unit: { "本": 100 } },
   "納豆": { cal: 200, pro: 16.5, fat: 10.0, carb: 12.1, unit: { "パック": 50 } },
   "むね肉（鳥）": { cal: 108, pro: 23.3, fat: 1.5, carb: 0.1, unit: { "g": 100 } },
@@ -35,8 +34,11 @@ const foodData = {
   "そば": { cal: 130, pro: 4.8, fat: 0.9, carb: 26.0, unit: { "玉": 180 } },
   "牛乳": { cal: 67, pro: 3.3, fat: 3.8, carb: 4.8, unit: { "ml": 100 } },
   "プロテイン": { cal: 120, pro: 23.0, fat: 2.0, carb: 3.0, unit: { "杯": 30 } },
-  "鶏もも肉": { cal: 98, pro: 8.0, fat: 7.0, carb: 0.0, unit: { "g": 50 } }
+  "鶏もも肉": { cal: 98, pro: 8.0, fat: 7.0, carb: 0.0, unit: { "g": 50 } },
+  "米1合": { cal: 534, pro: 9.0, fat: 1.0, carb: 117.0, unit: { "合": 150 } },
+  "米0.5合": { cal: 267, pro: 4.5, fat: 0.5, carb: 58.5, unit: { "合": 75 } }
 };
+
 
 window.addEventListener('DOMContentLoaded', () => {
   const saved = localStorage.getItem('records');
