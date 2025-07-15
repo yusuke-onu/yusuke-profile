@@ -216,7 +216,10 @@ function populateSuggestions() {
     option.value = name;
     dataList.appendChild(option);
   });
-  // 「閉じる」ボタンでモーダルを閉じる
+ 
+}
+
+ // 「閉じる」ボタンでモーダルを閉じる
 document.getElementById('close-modal').addEventListener('click', () => {
   document.getElementById('food-modal').style.display = 'none';
 });
@@ -228,4 +231,3 @@ document.getElementById('food-modal').addEventListener('click', (e) => {
   }
 });
 
-}
