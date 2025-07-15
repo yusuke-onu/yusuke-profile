@@ -78,6 +78,7 @@ form.addEventListener('submit', e => {
   if (!records[today]) records[today] = [];
   records[today].push({ item, cal, pro, fat, carb });
   saveData();
+  saveToSpreadsheet({ date: today, item, cal, pro, fat, carb });
 
   if (dateSelect.value === today) {
     addRecord(item, cal, pro, fat, carb);
